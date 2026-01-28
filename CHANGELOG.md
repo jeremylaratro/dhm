@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Moved ARCHITECTURE and ROADMAP docs from root to `docs/` directory
 
 ### Fixed
 
 ### Removed
+- Removed `.claude/` from version control (now in .gitignore)
 
 ---
 
