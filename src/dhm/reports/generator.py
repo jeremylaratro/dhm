@@ -184,6 +184,15 @@ class ReportGenerator:
                 downloads = await pypi_client.get_download_stats(package.name)
                 # Update the metadata object with real download count
                 pypi_metadata.downloads_last_month = downloads
+
+                # IMPORTANT: Update package version from PyPI if not specified
+                # This enables accurate open vs fixed vulnerability detection
+                if not package.version and pypi_metadata.version:
+                    package = PackageIdentifier(
+                        name=package.name,
+                        version=pypi_metadata.version,
+                        extras=package.extras,
+                    )
         except Exception:
             pass
 
