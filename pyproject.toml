@@ -56,10 +56,10 @@ dev = [
 dhm = "dhm.cli.main:cli"
 
 [project.urls]
-Homepage = "https://github.com/dhm/dependency-health-monitor"
-Documentation = "https://dhm.readthedocs.io"
-Repository = "https://github.com/dhm/dependency-health-monitor"
-Issues = "https://github.com/dhm/dependency-health-monitor/issues"
+Homepage = "https://github.com/jeremylaratro/dhm"
+Documentation = "https://github.com/jeremylaratro/dhm#readme"
+Repository = "https://github.com/jeremylaratro/dhm"
+Issues = "https://github.com/jeremylaratro/dhm/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dhm"]
