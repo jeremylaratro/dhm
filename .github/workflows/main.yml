@@ -31,7 +31,8 @@ jobs:
       - name: Install build + test deps
         run: |
           python -m pip install --upgrade pip
-          pip install -U build pytest
+          pip install -U build pytest pytest-cov
+
           # If you use requirements files, uncomment:
           # pip install -r requirements.txt
           # pip install -r requirements-dev.txt
