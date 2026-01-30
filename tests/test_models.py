@@ -2,18 +2,14 @@
 Tests for core data models.
 """
 
-import pytest
-from datetime import datetime, timezone
 
 from dhm.core.models import (
-    AlternativePackage,
     DependencyReport,
     HealthGrade,
     HealthScore,
     MaintenanceStatus,
     PackageIdentifier,
     PyPIMetadata,
-    RepositoryMetadata,
     RiskLevel,
     Vulnerability,
 )

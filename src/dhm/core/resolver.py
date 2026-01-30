@@ -9,11 +9,14 @@ import re
 import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional
 
+from dhm.core.exceptions import ParsingError, ValidationError
 from dhm.core.models import PackageIdentifier
-from dhm.core.exceptions import ParsingError
-
+from dhm.core.validation import (
+    MAX_INCLUDE_DEPTH,
+    check_recursion_depth,
+    validate_include_path,
+)
 
 # Handle tomli import for Python 3.10 vs 3.11+
 if sys.version_info >= (3, 11):
@@ -76,8 +79,34 @@ class RequirementsTxtSource(DependencySource):
             or name in ("requirements-dev.txt", "requirements-test.txt", "requirements-prod.txt")
         )
 
-    def parse(self, path: Path) -> list[PackageIdentifier]:
-        """Parse requirements.txt and return package identifiers."""
+    def parse(
+        self,
+        path: Path,
+        base_path: Path | None = None,
+        _depth: int = 0,
+    ) -> list[PackageIdentifier]:
+        """Parse requirements.txt and return package identifiers.
+
+        Args:
+            path: Path to the requirements file.
+            base_path: Root project directory for path traversal validation.
+                       If None, uses the parent of the initial file.
+            _depth: Current recursion depth (internal use).
+
+        Returns:
+            List of PackageIdentifier objects.
+
+        Raises:
+            ParsingError: If the file cannot be parsed.
+            ValidationError: If include depth exceeded or path traversal detected.
+        """
+        # Check recursion depth to prevent infinite loops
+        check_recursion_depth(_depth, MAX_INCLUDE_DEPTH)
+
+        # Set base_path on first call
+        if base_path is None:
+            base_path = path.parent.resolve()
+
         try:
             content = path.read_text(encoding="utf-8")
         except OSError as e:
@@ -93,12 +122,19 @@ class RequirementsTxtSource(DependencySource):
             if not line or line.startswith("#"):
                 continue
 
-            # Handle -r includes
+            # Handle -r includes with path traversal protection
             if line.startswith("-r ") or line.startswith("--requirement "):
-                include_path = line.split(maxsplit=1)[1].strip()
-                include_file = path.parent / include_path
-                if include_file.exists():
-                    included_files.append(include_file)
+                include_path_str = line.split(maxsplit=1)[1].strip()
+                try:
+                    # Validate the include path stays within project boundary
+                    validated_path = validate_include_path(
+                        include_path_str, base_path, path
+                    )
+                    if validated_path.exists():
+                        included_files.append(validated_path)
+                except ValidationError:
+                    # Log warning but continue parsing (don't fail on invalid includes)
+                    pass
                 continue
 
             # Handle -e (editable installs) - skip for now
@@ -114,12 +150,14 @@ class RequirementsTxtSource(DependencySource):
             if pkg:
                 packages.append(pkg)
 
-        # Process included files
+        # Process included files with incremented depth
         for include_file in included_files:
             try:
-                packages.extend(self.parse(include_file))
-            except ParsingError:
-                # Silently skip failed includes
+                packages.extend(
+                    self.parse(include_file, base_path=base_path, _depth=_depth + 1)
+                )
+            except (ParsingError, ValidationError):
+                # Skip failed includes but don't propagate errors
                 pass
 
         return packages
@@ -129,7 +167,7 @@ class RequirementsTxtSource(DependencySource):
         line: str,
         path: Path,
         line_num: int,
-    ) -> Optional[PackageIdentifier]:
+    ) -> PackageIdentifier | None:
         """Parse a single requirement line."""
         # Handle URLs (skip them)
         if "://" in line or line.startswith("git+"):
@@ -232,7 +270,7 @@ class PyProjectTomlSource(DependencySource):
 
         return packages
 
-    def _parse_pep508(self, dep: str) -> Optional[PackageIdentifier]:
+    def _parse_pep508(self, dep: str) -> PackageIdentifier | None:
         """Parse a PEP 508 dependency string."""
         # PEP 508 format: name[extras](<version specifier>)(; markers)
         pattern = re.compile(
@@ -272,7 +310,7 @@ class PyProjectTomlSource(DependencySource):
         self,
         name: str,
         spec: str | dict,
-    ) -> Optional[PackageIdentifier]:
+    ) -> PackageIdentifier | None:
         """Parse a Poetry dependency specification."""
         version = None
         extras = ()

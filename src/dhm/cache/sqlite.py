@@ -7,10 +7,10 @@ and ETag support for conditional requests.
 
 import json
 import sqlite3
+from collections.abc import Generator
 from contextlib import contextmanager
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Generator, Optional
+from typing import Any
 
 from dhm.core.exceptions import CacheError
 
@@ -26,7 +26,7 @@ class CacheLayer:
 
     def __init__(
         self,
-        db_path: Optional[Path] = None,
+        db_path: Path | None = None,
         default_ttl: int = DEFAULT_TTL,
     ):
         """Initialize the cache layer.
@@ -90,7 +90,7 @@ class CacheLayer:
         finally:
             conn.close()
 
-    def get(self, key: str) -> Optional[tuple[Any, Optional[str]]]:
+    def get(self, key: str) -> tuple[Any, str | None] | None:
         """Get cached value and ETag if not expired.
 
         Args:
@@ -117,7 +117,7 @@ class CacheLayer:
         except (sqlite3.Error, json.JSONDecodeError) as e:
             raise CacheError("get", str(e))
 
-    def get_value(self, key: str) -> Optional[Any]:
+    def get_value(self, key: str) -> Any | None:
         """Get cached value only (without ETag).
 
         Args:
@@ -133,8 +133,8 @@ class CacheLayer:
         self,
         key: str,
         value: Any,
-        ttl_seconds: Optional[int] = None,
-        etag: Optional[str] = None,
+        ttl_seconds: int | None = None,
+        etag: str | None = None,
     ) -> None:
         """Store value in cache with TTL.
 
@@ -276,7 +276,7 @@ class CacheLayer:
         self,
         key: str,
         factory: callable,
-        ttl_seconds: Optional[int] = None,
+        ttl_seconds: int | None = None,
     ) -> Any:
         """Get cached value or compute and cache it.
 
@@ -300,7 +300,7 @@ class CacheLayer:
         self,
         key: str,
         factory: callable,
-        ttl_seconds: Optional[int] = None,
+        ttl_seconds: int | None = None,
     ) -> Any:
         """Async version of get_or_set.
 

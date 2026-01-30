@@ -5,9 +5,9 @@ This module provides async clients for PyPI, GitHub, and vulnerability databases
 """
 
 from dhm.collectors.base import Collector
-from dhm.collectors.pypi import PyPIClient
 from dhm.collectors.github import GitHubClient
-from dhm.collectors.vulnerability import VulnerabilityScanner, OSVClient
+from dhm.collectors.pypi import PyPIClient
+from dhm.collectors.vulnerability import OSVClient, VulnerabilityScanner
 
 __all__ = [
     "Collector",

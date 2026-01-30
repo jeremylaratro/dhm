@@ -8,7 +8,6 @@ packages, health scores, vulnerabilities, and other metadata.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 
 class HealthGrade(Enum):
@@ -89,7 +88,7 @@ class PackageIdentifier:
     """Uniquely identifies a package with optional version and extras."""
 
     name: str
-    version: Optional[str] = None
+    version: str | None = None
     extras: tuple[str, ...] = ()
 
     def __str__(self) -> str:
@@ -127,10 +126,10 @@ class Vulnerability:
     title: str
     description: str
     affected_versions: str  # Version specifier
-    fixed_version: Optional[str] = None  # Version that fixes it
-    published: Optional[datetime] = None
+    fixed_version: str | None = None  # Version that fixes it
+    published: datetime | None = None
     references: list[str] = field(default_factory=list)
-    cvss_score: Optional[float] = None
+    cvss_score: float | None = None
     is_fixed_in_installed_version: bool = False  # True if current version is patched
 
     def __str__(self) -> str:
@@ -195,25 +194,25 @@ class PyPIMetadata:
     version: str
     summary: str
     author: str
-    author_email: Optional[str] = None
-    license: Optional[str] = None
-    python_requires: Optional[str] = None
+    author_email: str | None = None
+    license: str | None = None
+    python_requires: str | None = None
     requires_dist: list[str] = field(default_factory=list)
     project_urls: dict[str, str] = field(default_factory=dict)
     classifiers: list[str] = field(default_factory=list)
     downloads_last_month: int = 0
-    release_date: Optional[datetime] = None
-    first_release_date: Optional[datetime] = None
+    release_date: datetime | None = None
+    first_release_date: datetime | None = None
     total_releases: int = 0
     yanked_releases: int = 0
 
     @property
-    def home_page(self) -> Optional[str]:
+    def home_page(self) -> str | None:
         """Return the project home page URL."""
         return self.project_urls.get("Homepage") or self.project_urls.get("Home")
 
     @property
-    def repository_url(self) -> Optional[str]:
+    def repository_url(self) -> str | None:
         """Return the source repository URL."""
         for key in ("Repository", "Source", "Source Code", "Code"):
             if url := self.project_urls.get(key):
@@ -244,7 +243,9 @@ class PyPIMetadata:
             "classifiers": self.classifiers,
             "downloads_last_month": self.downloads_last_month,
             "release_date": self.release_date.isoformat() if self.release_date else None,
-            "first_release_date": self.first_release_date.isoformat() if self.first_release_date else None,
+            "first_release_date": (
+                self.first_release_date.isoformat() if self.first_release_date else None
+            ),
             "total_releases": self.total_releases,
             "yanked_releases": self.yanked_releases,
         }
@@ -296,11 +297,11 @@ class RepositoryMetadata:
     open_pull_requests: int = 0
     watchers: int = 0
     contributors_count: int = 0
-    last_commit_date: Optional[datetime] = None
-    created_date: Optional[datetime] = None
+    last_commit_date: datetime | None = None
+    created_date: datetime | None = None
     is_archived: bool = False
     is_fork: bool = False
-    license: Optional[str] = None
+    license: str | None = None
     topics: list[str] = field(default_factory=list)
     default_branch: str = "main"
 
@@ -312,7 +313,7 @@ class RepositoryMetadata:
     avg_pr_merge_time_days: float = 0.0
 
     @property
-    def github_owner_repo(self) -> Optional[tuple[str, str]]:
+    def github_owner_repo(self) -> tuple[str, str] | None:
         """Extract owner/repo from GitHub URL."""
         import re
 
@@ -335,7 +336,9 @@ class RepositoryMetadata:
             "open_pull_requests": self.open_pull_requests,
             "watchers": self.watchers,
             "contributors_count": self.contributors_count,
-            "last_commit_date": self.last_commit_date.isoformat() if self.last_commit_date else None,
+            "last_commit_date": (
+                self.last_commit_date.isoformat() if self.last_commit_date else None
+            ),
             "created_date": self.created_date.isoformat() if self.created_date else None,
             "is_archived": self.is_archived,
             "is_fork": self.is_fork,
@@ -414,7 +417,7 @@ class HealthScore:
     confidence: ConfidenceLevel = ConfidenceLevel.HIGH
 
     # Metadata
-    calculated_at: Optional[datetime] = None
+    calculated_at: datetime | None = None
     data_freshness: dict[str, datetime] = field(default_factory=dict)
 
     def __str__(self) -> str:
@@ -467,7 +470,10 @@ class AlternativePackage:
     api_compatibility: float = 0.0  # 0-1, how similar the API is
 
     def __str__(self) -> str:
-        return f"{self.package.name} (score: {self.health_score:.0f}, effort: {self.migration_effort})"
+        name = self.package.name
+        score = self.health_score
+        effort = self.migration_effort
+        return f"{name} (score: {score:.0f}, effort: {effort})"
 
 
 @dataclass
@@ -476,10 +482,10 @@ class DependencyReport:
 
     package: PackageIdentifier
     health: HealthScore
-    pypi: Optional[PyPIMetadata] = None
-    repository: Optional[RepositoryMetadata] = None
+    pypi: PyPIMetadata | None = None
+    repository: RepositoryMetadata | None = None
     alternatives: list[AlternativePackage] = field(default_factory=list)
-    update_available: Optional[str] = None  # Latest version if different
+    update_available: str | None = None  # Latest version if different
     is_direct: bool = True  # Direct vs transitive dependency
     dependents: list[str] = field(default_factory=list)  # What depends on this
 

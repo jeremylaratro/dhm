@@ -23,7 +23,6 @@ Example:
 """
 
 from pathlib import Path
-from typing import Optional
 
 from dhm.core.models import DependencyReport, PackageIdentifier
 from dhm.reports.generator import ReportGenerator
@@ -31,9 +30,9 @@ from dhm.reports.generator import ReportGenerator
 
 async def check(
     package: str,
-    version: Optional[str] = None,
+    version: str | None = None,
     *,
-    github_token: Optional[str] = None,
+    github_token: str | None = None,
     use_cache: bool = True,
 ) -> DependencyReport:
     """Check the health of a single package.
@@ -66,9 +65,9 @@ async def check(
 
 
 async def scan(
-    path: Optional[str] = None,
+    path: str | None = None,
     *,
-    github_token: Optional[str] = None,
+    github_token: str | None = None,
     use_cache: bool = True,
 ) -> list[DependencyReport]:
     """Scan a project's dependencies for health issues.
@@ -102,7 +101,7 @@ async def scan(
 async def check_packages(
     packages: list[str],
     *,
-    github_token: Optional[str] = None,
+    github_token: str | None = None,
     use_cache: bool = True,
 ) -> list[DependencyReport]:
     """Check health of multiple packages.
@@ -141,9 +140,9 @@ async def check_packages(
 
 def check_sync(
     package: str,
-    version: Optional[str] = None,
+    version: str | None = None,
     *,
-    github_token: Optional[str] = None,
+    github_token: str | None = None,
     use_cache: bool = True,
 ) -> DependencyReport:
     """Synchronous wrapper for check().
@@ -162,9 +161,9 @@ def check_sync(
 
 
 def scan_sync(
-    path: Optional[str] = None,
+    path: str | None = None,
     *,
-    github_token: Optional[str] = None,
+    github_token: str | None = None,
     use_cache: bool = True,
 ) -> list[DependencyReport]:
     """Synchronous wrapper for scan().

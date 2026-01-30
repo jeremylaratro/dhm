@@ -2,8 +2,9 @@
 Tests for the health calculator.
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
+
+import pytest
 
 from dhm.core.calculator import HealthCalculator
 from dhm.core.models import (

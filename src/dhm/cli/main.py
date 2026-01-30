@@ -8,18 +8,17 @@ finding alternatives, and managing the cache.
 import asyncio
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 
 from dhm import __version__
 from dhm.cli.output import (
-    print_table,
-    print_detailed_report,
     print_alternatives_table,
+    print_detailed_report,
     print_error,
-    print_success,
     print_info,
+    print_success,
+    print_table,
 )
 from dhm.core.models import RiskLevel
 
@@ -37,7 +36,7 @@ def run_async(coro):
     help="GitHub API token for higher rate limits.",
 )
 @click.pass_context
-def cli(ctx: click.Context, github_token: Optional[str]) -> None:
+def cli(ctx: click.Context, github_token: str | None) -> None:
     """Dependency Health Monitor - Know your dependencies.
 
     DHM analyzes your project dependencies and provides health scores
@@ -75,8 +74,8 @@ def scan(
     ctx: click.Context,
     path: str,
     format: str,
-    output: Optional[str],
-    fail_on: Optional[str],
+    output: str | None,
+    fail_on: str | None,
     no_cache: bool,
 ) -> None:
     """Scan project dependencies for health issues.
@@ -150,7 +149,7 @@ def scan(
     help="Specific version to check.",
 )
 @click.pass_context
-def check(ctx: click.Context, package: str, version: Optional[str]) -> None:
+def check(ctx: click.Context, package: str, version: str | None) -> None:
     """Check health of a specific package.
 
     Fetches comprehensive health information for PACKAGE including
@@ -229,7 +228,9 @@ def alternatives(ctx: click.Context, package: str) -> None:
 
         if not alts:
             print_info(f"No better alternatives found for {package}.")
-            print_info(f"Current health score: {report.health.overall:.0f} ({report.health.grade.value})")
+            score = report.health.overall
+            grade = report.health.grade.value
+            print_info(f"Current health score: {score:.0f} ({grade})")
             return
 
         print_alternatives_table(package, report.health, alts)
@@ -243,8 +244,10 @@ def alternatives(ctx: click.Context, package: str) -> None:
 @click.option("--clear", is_flag=True, help="Clear all cached data.")
 @click.option("--stats", is_flag=True, help="Show cache statistics.")
 @click.option("--cleanup", is_flag=True, help="Remove expired entries.")
-@click.option("--invalidate", type=str, help="Invalidate entries matching pattern (e.g., 'github:%')")
-def cache(clear: bool, stats: bool, cleanup: bool, invalidate: Optional[str]) -> None:
+@click.option(
+    "--invalidate", type=str, help="Invalidate entries matching pattern (e.g., 'github:%')"
+)
+def cache(clear: bool, stats: bool, cleanup: bool, invalidate: str | None) -> None:
     """Manage the local cache.
 
     DHM caches API responses to improve performance and reduce

@@ -5,9 +5,11 @@ Defines the interface that all collectors must implement.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
+
+from dhm.core.validation import MAX_RESPONSE_SIZE, validate_response_size
 
 
 class Collector(ABC):
@@ -18,9 +20,12 @@ class Collector(ABC):
     for their respective data sources.
     """
 
+    # Maximum response size (10 MB) - can be overridden by subclasses
+    MAX_RESPONSE_SIZE = MAX_RESPONSE_SIZE
+
     def __init__(
         self,
-        session: Optional[aiohttp.ClientSession] = None,
+        session: aiohttp.ClientSession | None = None,
         timeout: int = 30,
     ):
         """Initialize the collector.
@@ -80,3 +85,19 @@ class Collector(ABC):
             "User-Agent": "DependencyHealthMonitor/0.1.0",
             "Accept": "application/json",
         }
+
+    def _check_response_size(self, response: aiohttp.ClientResponse) -> None:
+        """Check if response size is within acceptable limits.
+
+        Args:
+            response: The aiohttp response object.
+
+        Raises:
+            ValidationError: If the response is too large.
+        """
+        content_length = response.headers.get("Content-Length")
+        if content_length is not None:
+            try:
+                validate_response_size(int(content_length), self.MAX_RESPONSE_SIZE)
+            except ValueError:
+                pass  # Invalid Content-Length header, proceed with caution

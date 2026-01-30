@@ -4,14 +4,14 @@ Pytest fixtures and configuration for DHM tests.
 Provides mock API responses and test data for unit testing.
 """
 
-import pytest
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from dhm.core.models import (
-    AlternativePackage,
     DependencyReport,
     HealthGrade,
     HealthScore,
@@ -22,7 +22,6 @@ from dhm.core.models import (
     RiskLevel,
     Vulnerability,
 )
-
 
 # =============================================================================
 # Test Data Fixtures

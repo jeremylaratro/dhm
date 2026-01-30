@@ -8,13 +8,14 @@ Includes caching to reduce redundant API calls.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
 from dhm.collectors.base import Collector
-from dhm.core.exceptions import PackageNotFoundError, NetworkError, RateLimitError
+from dhm.core.exceptions import NetworkError, PackageNotFoundError, RateLimitError
 from dhm.core.models import PyPIMetadata
+from dhm.core.validation import encode_package_name_for_url
 
 if TYPE_CHECKING:
     from dhm.cache.sqlite import CacheLayer
@@ -36,9 +37,9 @@ class PyPIClient(Collector):
 
     def __init__(
         self,
-        session: Optional[aiohttp.ClientSession] = None,
+        session: aiohttp.ClientSession | None = None,
         timeout: int = 30,
-        cache: Optional["CacheLayer"] = None,
+        cache: "CacheLayer | None" = None,
     ):
         """Initialize the PyPI client.
 
@@ -68,7 +69,7 @@ class PyPIClient(Collector):
     async def get_package_info(
         self,
         name: str,
-        version: Optional[str] = None,
+        version: str | None = None,
     ) -> PyPIMetadata:
         """Fetch package metadata from PyPI.
 
@@ -92,10 +93,13 @@ class PyPIClient(Collector):
             if cached:
                 return PyPIMetadata.from_dict(cached)
 
+        # URL-encode the package name to prevent injection
+        encoded_name = encode_package_name_for_url(name)
         if version:
-            url = f"{self.BASE_URL}/{name}/{version}/json"
+            encoded_version = encode_package_name_for_url(version)
+            url = f"{self.BASE_URL}/{encoded_name}/{encoded_version}/json"
         else:
-            url = f"{self.BASE_URL}/{name}/json"
+            url = f"{self.BASE_URL}/{encoded_name}/json"
 
         try:
             async with self.session.get(
@@ -108,6 +112,9 @@ class PyPIClient(Collector):
                     raise RateLimitError("PyPI")
                 if resp.status != 200:
                     raise NetworkError(url, resp.status)
+
+                # Check response size before parsing
+                self._check_response_size(resp)
 
                 data = await resp.json()
                 metadata = self._parse_response(data)
@@ -133,7 +140,8 @@ class PyPIClient(Collector):
         Returns:
             List of release dictionaries with version and upload_time.
         """
-        url = f"{self.BASE_URL}/{name}/json"
+        encoded_name = encode_package_name_for_url(name)
+        url = f"{self.BASE_URL}/{encoded_name}/json"
 
         try:
             async with self.session.get(
@@ -273,7 +281,7 @@ class PyPIClient(Collector):
         self,
         releases: dict[str, list],
         version: str,
-    ) -> Optional[datetime]:
+    ) -> datetime | None:
         """Parse the release date for a specific version.
 
         Args:
@@ -302,7 +310,7 @@ class PyPIClient(Collector):
     def _find_first_release(
         self,
         releases: dict[str, list],
-    ) -> Optional[datetime]:
+    ) -> datetime | None:
         """Find the date of the first release.
 
         Args:
@@ -311,7 +319,7 @@ class PyPIClient(Collector):
         Returns:
             datetime of first release or None.
         """
-        earliest: Optional[datetime] = None
+        earliest: datetime | None = None
 
         for version, files in releases.items():
             if not files:

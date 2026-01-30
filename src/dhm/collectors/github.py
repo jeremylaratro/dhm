@@ -12,12 +12,12 @@ import asyncio
 import os
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 import aiohttp
 
 from dhm.collectors.base import Collector
-from dhm.core.exceptions import RepositoryNotFoundError, NetworkError, RateLimitError
+from dhm.core.exceptions import NetworkError, RateLimitError, RepositoryNotFoundError
 from dhm.core.models import RepositoryMetadata
 
 if TYPE_CHECKING:
@@ -38,8 +38,8 @@ class GitHubClient(Collector):
 
     def __init__(
         self,
-        session: Optional[aiohttp.ClientSession] = None,
-        token: Optional[str] = None,
+        session: aiohttp.ClientSession | None = None,
+        token: str | None = None,
         timeout: int = 30,
         cache: Optional["CacheLayer"] = None,
     ):
@@ -110,6 +110,9 @@ class GitHubClient(Collector):
                     raise NetworkError(url, resp.status, "Access forbidden")
                 if resp.status != 200:
                     raise NetworkError(url, resp.status)
+
+                # Check response size before parsing
+                self._check_response_size(resp)
 
                 data = await resp.json()
 
@@ -262,7 +265,8 @@ class GitHubClient(Collector):
         Returns:
             Dict with merge_rate, avg_merge_time, and open_count.
         """
-        since = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+        # Note: 90-day window for PR analysis (variable available for future filtering)
+        _ = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
         url = f"{self.BASE_URL}/repos/{owner}/{repo}/pulls"
 
         stats: dict[str, Any] = {"merge_rate": 0.0, "avg_merge_time": 0.0, "open_count": 0}

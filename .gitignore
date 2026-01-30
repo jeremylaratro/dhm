@@ -220,3 +220,4 @@ scratch/
 # DHM specific
 *.db
 dhm_cache.db
+docs/security/

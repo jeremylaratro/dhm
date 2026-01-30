@@ -24,10 +24,22 @@ __version__ = "0.1.0"
 # High-level API (recommended for most users)
 from dhm.api import (
     check,
-    check_sync,
     check_packages,
+    check_sync,
     scan,
     scan_sync,
+)
+
+# Core components (for advanced usage)
+from dhm.core.calculator import HealthCalculator
+
+# Exceptions
+from dhm.core.exceptions import (
+    CacheError,
+    DHMError,
+    PackageNotFoundError,
+    RateLimitError,
+    RepositoryNotFoundError,
 )
 
 # Data models
@@ -44,19 +56,7 @@ from dhm.core.models import (
     RiskLevel,
     Vulnerability,
 )
-
-# Core components (for advanced usage)
-from dhm.core.calculator import HealthCalculator
 from dhm.core.resolver import DependencyResolver
-
-# Exceptions
-from dhm.core.exceptions import (
-    DHMError,
-    PackageNotFoundError,
-    RepositoryNotFoundError,
-    RateLimitError,
-    CacheError,
-)
 
 __all__ = [
     # Version

@@ -8,11 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- New `validation.py` module with centralized security validation functions
+- Path traversal protection for `-r` includes in requirements.txt parsing
+- Recursion depth limit (max 5) to prevent stack overflow from circular includes
+- Response size validation (10MB limit) to prevent memory exhaustion attacks
+- URL encoding for PyPI API requests to prevent injection attacks
 
 ### Changed
 - Moved ARCHITECTURE and ROADMAP docs from root to `docs/` directory
+- Updated aiohttp dependency to >=3.13.3 (CVE-2025-69228, CVE-2025-69226, CVE-2025-53643)
+- Added `packaging>=21.0` dependency for PEP 440-compliant version comparison
+- Replaced custom version comparison with `packaging.version.parse()` for correct pre-release handling
+- Converted `Optional` type hints to `X | None` syntax for consistency
 
 ### Fixed
+- Version comparison bug where `1.0.0b2` incorrectly equaled `1.0.0b3`
+- Path traversal vulnerability in requirements.txt `-r` includes
+- Potential URL injection in PyPI API requests
+- Potential memory exhaustion from oversized API responses
 
 ### Removed
 - Removed `.claude/` from version control (now in .gitignore)

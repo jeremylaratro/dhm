@@ -10,7 +10,6 @@ Uses logarithmic normalization for smooth scoring curves (industry best practice
 
 import math
 from datetime import datetime, timezone
-from typing import Optional
 
 from dhm.core.models import (
     ConfidenceLevel,
@@ -104,13 +103,15 @@ class HealthCalculator:
     }
 
     # License categories for scoring
-    LICENSE_PERMISSIVE = {"MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unlicense", "0BSD"}
+    LICENSE_PERMISSIVE = {
+        "MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unlicense", "0BSD"
+    }
     LICENSE_COPYLEFT = {"GPL-2.0", "GPL-3.0", "LGPL-2.1", "LGPL-3.0", "AGPL-3.0", "MPL-2.0"}
     LICENSE_WEAK_COPYLEFT = {"LGPL-2.1", "LGPL-3.0", "MPL-2.0"}  # Less restrictive copyleft
 
     def __init__(
         self,
-        weights: Optional[dict[str, float]] = None,
+        weights: dict[str, float] | None = None,
     ):
         """Initialize the calculator with optional custom weights.
 
@@ -129,8 +130,8 @@ class HealthCalculator:
 
     def calculate(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
         vulnerabilities: list[Vulnerability],
     ) -> HealthScore:
         """Calculate comprehensive health score.
@@ -223,8 +224,8 @@ class HealthCalculator:
 
     def _calculate_maintenance_score(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
     ) -> float:
         """Calculate score based on maintenance activity.
 
@@ -287,7 +288,7 @@ class HealthCalculator:
 
     def _calculate_community_score(
         self,
-        repo: Optional[RepositoryMetadata],
+        repo: RepositoryMetadata | None,
     ) -> float:
         """Calculate score based on community engagement.
 
@@ -331,8 +332,8 @@ class HealthCalculator:
 
     def _calculate_popularity_score(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
     ) -> float:
         """Calculate score based on package popularity.
 
@@ -367,7 +368,7 @@ class HealthCalculator:
 
     def _calculate_quality_score(
         self,
-        repo: Optional[RepositoryMetadata],
+        repo: RepositoryMetadata | None,
     ) -> float:
         """Calculate code quality score.
 
@@ -415,8 +416,8 @@ class HealthCalculator:
 
     def _calculate_license_score(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
     ) -> float:
         """Calculate license compatibility score.
 
@@ -463,8 +464,8 @@ class HealthCalculator:
 
     def _determine_confidence(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
     ) -> ConfidenceLevel:
         """Determine confidence level based on data availability.
 
@@ -494,8 +495,8 @@ class HealthCalculator:
 
     def _determine_maintenance_status(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
     ) -> MaintenanceStatus:
         """Classify maintenance status based on activity signals."""
 
@@ -564,8 +565,8 @@ class HealthCalculator:
 
     def _identify_risks(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
         vulnerabilities: list[Vulnerability],
     ) -> list[str]:
         """Identify risk factors for a package."""
@@ -614,8 +615,8 @@ class HealthCalculator:
 
     def _identify_positives(
         self,
-        pypi: Optional[PyPIMetadata],
-        repo: Optional[RepositoryMetadata],
+        pypi: PyPIMetadata | None,
+        repo: RepositoryMetadata | None,
     ) -> list[str]:
         """Identify positive factors for a package."""
         positives = []

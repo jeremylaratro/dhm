@@ -2,16 +2,15 @@
 Tests for the dependency resolver.
 """
 
-import pytest
-from pathlib import Path
 
+import pytest
+
+from dhm.core.exceptions import ParsingError
 from dhm.core.resolver import (
     DependencyResolver,
-    RequirementsTxtSource,
     PyProjectTomlSource,
+    RequirementsTxtSource,
 )
-from dhm.core.models import PackageIdentifier
-from dhm.core.exceptions import ParsingError
 
 
 class TestRequirementsTxtSource:

@@ -7,21 +7,20 @@ and formatting to produce complete dependency health reports.
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 import aiohttp
 
+from dhm.cache.sqlite import CacheLayer
+from dhm.collectors.github import GitHubClient
+from dhm.collectors.pypi import PyPIClient
+from dhm.collectors.vulnerability import VulnerabilityScanner
+from dhm.core.calculator import HealthCalculator
 from dhm.core.models import (
     DependencyReport,
     HealthScore,
     PackageIdentifier,
 )
-from dhm.core.calculator import HealthCalculator
 from dhm.core.resolver import DependencyResolver
-from dhm.collectors.pypi import PyPIClient
-from dhm.collectors.github import GitHubClient
-from dhm.collectors.vulnerability import VulnerabilityScanner
-from dhm.cache.sqlite import CacheLayer
 from dhm.reports.formatters import (
     Formatter,
     JSONFormatter,
@@ -40,7 +39,7 @@ class ReportGenerator:
 
     def __init__(
         self,
-        github_token: Optional[str] = None,
+        github_token: str | None = None,
         cache_ttl: int = 3600,
         use_cache: bool = True,
     ):
@@ -74,7 +73,7 @@ class ReportGenerator:
         self,
         project_path: Path,
         output_format: str = "table",
-        output_path: Optional[Path] = None,
+        output_path: Path | None = None,
     ) -> tuple[list[DependencyReport], str]:
         """Generate a health report for a project.
 
@@ -249,7 +248,7 @@ class ReportGenerator:
     async def check_package(
         self,
         name: str,
-        version: Optional[str] = None,
+        version: str | None = None,
     ) -> DependencyReport:
         """Check health of a single package.
 

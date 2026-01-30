@@ -5,13 +5,12 @@ Provides functions for printing tables, reports, and formatted
 output using the Rich library.
 """
 
-from typing import Optional
 
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.text import Text
 from rich import box
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 from dhm.core.models import (
     AlternativePackage,
@@ -151,7 +150,8 @@ def print_table(reports: list[DependencyReport]) -> None:
     console.print(f"  [red]Concerning (D/F):[/] {concerning}")
     console.print(f"  [red]With OPEN vulnerabilities:[/] {with_open_vulns}")
     if with_vulns > with_open_vulns:
-        console.print(f"  [dim]With fixed (historical) vulnerabilities:[/] {with_vulns - with_open_vulns}")
+        fixed_count = with_vulns - with_open_vulns
+        console.print(f"  [dim]With fixed (historical) vulnerabilities:[/] {fixed_count}")
 
 
 def print_detailed_report(report: DependencyReport) -> None:
@@ -180,7 +180,11 @@ def print_detailed_report(report: DependencyReport) -> None:
     }.get(health.confidence.value, "white")
 
     console.print("\n[bold cyan]Health Scores[/]")
-    console.print(f"  Overall: [{grade_style}]{health.overall:.1f}[/] / 100 [{confidence_style}]({health.confidence.value} confidence)[/]")
+    conf = health.confidence.value
+    console.print(
+        f"  Overall: [{grade_style}]{health.overall:.1f}[/] / 100 "
+        f"[{confidence_style}]({conf} confidence)[/]"
+    )
     console.print(f"  Security: {health.security_score:.0f}")
     console.print(f"  Maintenance: {health.maintenance_score:.0f}")
     console.print(f"  Community: {health.community_score:.0f}")
@@ -189,7 +193,8 @@ def print_detailed_report(report: DependencyReport) -> None:
 
     # Maintenance status
     status_style = get_status_style(health.maintenance_status)
-    console.print(f"\n[bold cyan]Maintenance Status:[/] [{status_style}]{health.maintenance_status.value}[/]")
+    status_val = health.maintenance_status.value
+    console.print(f"\n[bold cyan]Maintenance Status:[/] [{status_style}]{status_val}[/]")
 
     # Vulnerabilities
     if health.vulnerabilities:
@@ -197,7 +202,8 @@ def print_detailed_report(report: DependencyReport) -> None:
         fixed_vulns = health.fixed_vulnerabilities
 
         if open_vulns:
-            console.print(f"\n[bold red]OPEN Vulnerabilities ({len(open_vulns)}) - Action Required[/]")
+            count = len(open_vulns)
+            console.print(f"\n[bold red]OPEN Vulnerabilities ({count}) - Action Required[/]")
             for vuln in open_vulns:
                 severity_color = {
                     "critical": "bold red",
@@ -211,7 +217,10 @@ def print_detailed_report(report: DependencyReport) -> None:
                     console.print(f"    [green]Fix available:[/] Upgrade to {vuln.fixed_version}")
 
         if fixed_vulns:
-            console.print(f"\n[dim]Fixed Vulnerabilities ({len(fixed_vulns)}) - Historical, already patched[/]")
+            count = len(fixed_vulns)
+            console.print(
+                f"\n[dim]Fixed Vulnerabilities ({count}) - Historical, already patched[/]"
+            )
             for vuln in fixed_vulns[:5]:  # Show max 5 historical
                 console.print(f"  [dim]{vuln.id} - {vuln.title} (fixed in {vuln.fixed_version})[/]")
             if len(fixed_vulns) > 5:
@@ -261,7 +270,10 @@ def print_detailed_report(report: DependencyReport) -> None:
     if report.alternatives:
         console.print("\n[bold cyan]Suggested Alternatives[/]")
         for alt in report.alternatives[:3]:
-            console.print(f"  {alt.package.name} (score: {alt.health_score:.0f}, effort: {alt.migration_effort})")
+            name = alt.package.name
+            score = alt.health_score
+            effort = alt.migration_effort
+            console.print(f"  {name} (score: {score:.0f}, effort: {effort})")
 
     console.print()
 
@@ -312,7 +324,9 @@ def print_alternatives_table(
 
     console.print()
     console.print(f"[bold]Current package:[/] {package}")
-    console.print(f"[bold]Current score:[/] {current_health.overall:.0f} ({current_health.grade.value})")
+    score = current_health.overall
+    grade = current_health.grade.value
+    console.print(f"[bold]Current score:[/] {score:.0f} ({grade})")
     console.print()
     console.print(table)
 

@@ -5,7 +5,7 @@ Finds and ranks alternative packages that could replace a dependency
 with better health scores or different characteristics.
 """
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from dhm.core.models import (
     AlternativePackage,
